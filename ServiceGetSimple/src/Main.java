@@ -1,4 +1,6 @@
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -7,26 +9,28 @@ import java.util.List;
 import java.util.Map;
 public class Main {
 
-    private static String NASA_KEY = "vepILoRSPVsdd7sMjtWKtkR04lBmRRLgPQtqNzZ1";
+
     public static void main(String[] args) throws Exception {
 
         // fazer uma conexão HTTP e buscar imagens da API da Nasa
-        String url = "https://api.nasa.gov/planetary/apod?api_key=" + NASA_KEY + "&count=5";
-        URI end = URI.create(url);
-        var client = HttpClient.newHttpClient();
-        var request = HttpRequest.newBuilder(end).GET().build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        String body = response.body();
+        API api = API.NASA;
+        ClientHttp clientHttp = new ClientHttp();
+        String body = clientHttp.buscaDados(api.getUrl());
 
-        // extrair só os dados que interessam (titulo, url imagem, data)
-        var parser = new JsonParser();
-        List<Map<String, String>> listaDeFilmes = parser.parse(body);
+        List<Conteudo> conteudoList = api.getExtrator().extraiConteudos(body);
+        var editor = new ImageEditor();
 
         // exibir os dados
-        for (Map<String,String> filme : listaDeFilmes) {
-            System.out.println(filme.get("title"));
-            System.out.println(filme.get("url"));
-            System.out.println(filme.get("date"));
+        for (Conteudo conteudo : conteudoList) {
+            System.out.println(conteudo.getTitulo());
+
+            System.out.println(conteudo.getUrlImage());
+            InputStream inputStream = new URL(conteudo.getUrlImage()).openStream();
+            if(!conteudo.getUrlImage().contains("youtube") && !conteudo.getUrlImage().contains("gif")) {
+                editor.cria(inputStream, "Saida/" + conteudo.getTitulo() + ".png");
+            }
+
+            System.out.println(conteudo.getImageDate());
             System.out.println();
         }
     }
