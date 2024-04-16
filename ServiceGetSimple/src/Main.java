@@ -1,17 +1,33 @@
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.util.List;
+import java.util.Map;
 public class Main {
-    public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
+    private static String NASA_KEY = "vepILoRSPVsdd7sMjtWKtkR04lBmRRLgPQtqNzZ1";
+    public static void main(String[] args) throws Exception {
 
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
+        // fazer uma conexão HTTP e buscar imagens da API da Nasa
+        String url = "https://api.nasa.gov/planetary/apod?api_key=" + NASA_KEY + "&count=5";
+        URI end = URI.create(url);
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder(end).GET().build();
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        String body = response.body();
+
+        // extrair só os dados que interessam (titulo, url imagem, data)
+        var parser = new JsonParser();
+        List<Map<String, String>> listaDeFilmes = parser.parse(body);
+
+        // exibir os dados
+        for (Map<String,String> filme : listaDeFilmes) {
+            System.out.println(filme.get("title"));
+            System.out.println(filme.get("url"));
+            System.out.println(filme.get("date"));
+            System.out.println();
         }
     }
 }
